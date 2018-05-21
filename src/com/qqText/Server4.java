@@ -46,9 +46,10 @@ public class Server4 extends Thread {
 	public JButton button1, buttonLogin, buttonExit;
 	public JLabel jlable;
 	public JTextField MyName;
-	public static DefaultListModel listModel;
+	public static DefaultListModel listModel = new DefaultListModel();
 	public static JList userList; // 显示对象列表
 	public JSplitPane centerSplit;
+	public JScrollPane spFriend;
 	public boolean isConnected = false;
 	static Server4 Server4;
 	static Socket s;
@@ -86,7 +87,7 @@ public class Server4 extends Thread {
 					if(v!=null){
 						for(int i = 0;i<v.size();i++){
 							String info = (String) v.get(i);							
-							if(info.startsWith("用户：")){
+							if(info.startsWith("用户：")){   
 								key = info.substring(3);
 								hash.put(key,socket);
 								Set<String> set = hash.keySet();// 获得集合中所有键的Set视图
@@ -103,18 +104,20 @@ public class Server4 extends Thread {
 									}									
 								}
 								listModel.addElement(info);
-								}else if(info.startsWith("退出：")){
+								}else if(info.startsWith("退出：")){  
 									key = info.substring(3);
 									hash.remove(key);
 									Set<String> set = hash.keySet();
 									Iterator<String> it = set.iterator();
+									Server4.viewArea.append(key+"  退出登录" + "\n");
+									listModel.removeElement(info.substring(3));
 									while(it.hasNext()){
 										String recivekey = it.next();
 										Socket s = hash.get(recivekey);
 										PrintWriter out = new PrintWriter(socket.getOutputStream(),true);
 										out.println("退出："+key);
 										out.flush();
-									}									
+									}
 								}else{
 									key = info.substring(info.indexOf("：发送给：") + 5,info.indexOf("：的信息是："));// 获得接收方的key值,即接收方的用户名
 									String sendUser = info.substring(0,info.indexOf("：发送给："));// 获得发送方的key值,即发送方的用户名
@@ -182,13 +185,13 @@ public class Server4 extends Thread {
 		viewField = new JTextField(50);
 		jp_input.add(viewField);
 		
-		listModel = new DefaultListModel();
+//		listModel = new DefaultListModel();
 		userList = new JList(listModel);
 		JScrollPane sp = new JScrollPane(viewArea);
 		sp.setBorder(new TitledBorder("消息显示区"));
 		sp.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);// 水平滚动轴
 		sp.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);// 垂直滚动条
-		JScrollPane spFriend = new JScrollPane(userList);
+		spFriend = new JScrollPane(userList);
 		spFriend.setBorder(new TitledBorder("在线人员"));
 		spFriend.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);// 垂直滚动条
 		centerSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, spFriend, sp);
@@ -200,7 +203,7 @@ public class Server4 extends Thread {
 		frame.setSize(700, 400);
 		frame.setLocation(200, 100);
 		frame.setVisible(true);
-
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);//使能关闭窗口，结束程序
 		// 文本框按回车键时事件
 		viewField.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {

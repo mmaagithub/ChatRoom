@@ -12,6 +12,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -66,12 +68,13 @@ public class Client4 {
 	public DefaultListModel listModel;
 	public static JList userList;		//显示对象列表
 	public JSplitPane centerSplit;
+	public JScrollPane spFriend ;
 	public static boolean isConnected = false;
 	static Client4 objClient;
 	static DefaultComboBoxModel model;
 	static ObjectOutputStream out;
 	boolean loginFlag = false;
-	
+	public Socket s =null;
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 		public void run() {
@@ -82,7 +85,8 @@ public class Client4 {
 	}
 	public void createClientSocket(Client4 client) {
 		try {
-			Socket s = new Socket("localhost", 8848);
+			 //s = new Socket("192.168.137.1", 8848);
+			s = new Socket("47.93.204.33", 8848);
 			out = new ObjectOutputStream(s.getOutputStream());
 			client.clientSurface();	
 			new MyClientReader(s).start();																									
@@ -135,7 +139,7 @@ public class Client4 {
 					    StyleConstants.setFontFamily(aSet, "lucida bright italic");    
 					    StyleConstants.setFontSize(aSet, 18);    					
 						//StyleConstants.setAlignment(aSet, StyleConstants.ALIGN_LEFT); 
-						objClient.textPane.setParagraphAttributes(aSet,false); 					
+						objClient.textPane.setParagraphAttributes(aSet,false); 	
 						objClient.viewField.setText(null);// 清空文本框	
 						Document docs = objClient.textPane.getDocument();//获得文本对象
 					        try {
@@ -181,8 +185,9 @@ public class Client4 {
 		StyleConstants.setForeground(aSet, Color.blue);        
 		StyleConstants.setFontFamily(aSet, "lucida bright italic");    
 		StyleConstants.setFontSize(aSet, 18);   
-		StyleConstants.setAlignment(aSet, StyleConstants.ALIGN_RIGHT); 
-		objClient.textPane.setParagraphAttributes(aSet,false); 	
+		//StyleConstants.setAlignment(aSet, StyleConstants.ALIGN_RIGHT); 
+		System.out.println(StyleConstants.ALIGN_RIGHT);
+		objClient.textPane.setParagraphAttributes(aSet,false); 
 		Document docs = objClient.textPane.getDocument();//获得文本对象
 		System.out.println(docs);
         try {
@@ -194,7 +199,6 @@ public class Client4 {
 	
 	public void clientSurface() {
 		frame = new JFrame("Chat Room");
-//		viewArea = new JTextArea(10, 40);
 		textPane = new JTextPane();
 		jlable = new JLabel();
 		jlable.setText("在线");
@@ -228,7 +232,7 @@ public class Client4 {
 		sp.setBorder(new TitledBorder("消息显示区")); 
 		sp.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);//水平滚动轴
 		sp.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);//垂直滚动条
-		JScrollPane spFriend = new JScrollPane(userList);
+		spFriend = new JScrollPane(userList);
 		spFriend.setBorder(new TitledBorder("好友列表")); 
 		userList.setModel(new DefaultComboBoxModel(new String[] { "" }));
 		spFriend.setViewportView(userList);
@@ -286,15 +290,27 @@ public class Client4 {
 				String exitUser = jt_login.getText().trim();
 				Vector v = new Vector();
 				v.add("退出：" + exitUser);
+				loginFlag = false;
 				try {
 					out.writeObject(v);
 					out.flush();// 刷新输出缓冲区
 				} catch (IOException ex) {
 					ex.printStackTrace();
 				}
-				System.exit(0); // 退出系统
 			}
 		});
+		
+		frame.addWindowListener(new WindowAdapter(){
+			   public void windowClosing(WindowEvent e) {
+				   if(loginFlag){
+					   frame.setDefaultCloseOperation(0);
+					   JOptionPane.showMessageDialog(null, "请先退出登录", "警告",JOptionPane.ERROR_MESSAGE);
+				   }else{
+					   frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+				   }
+			   }
+		 });
+		
 //		创建托盘
 		 if (SystemTray.isSupported())
 	      {
